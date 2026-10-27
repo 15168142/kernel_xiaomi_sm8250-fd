@@ -1747,8 +1747,12 @@ static int aw8697_haptic_read_f0(struct aw8697 *aw8697)
 	pr_debug("%s enter\n", __func__);
 
 	ret = aw8697_i2c_read(aw8697, AW8697_REG_F_LRA_F0_H, &reg_val);
+	if (ret < 0)
+		return ret;
 	f0_reg = (reg_val << 8);
 	ret = aw8697_i2c_read(aw8697, AW8697_REG_F_LRA_F0_L, &reg_val);
+	if (ret < 0)
+		return ret;
 	f0_reg |= (reg_val << 0);
 	if (!f0_reg) {
 		pr_debug("%s: not get f0_reg value is 0!\n", __func__);
@@ -1773,8 +1777,12 @@ static int aw8697_haptic_read_cont_f0(struct aw8697 *aw8697)
 	pr_debug("%s enter\n", __func__);
 
 	ret = aw8697_i2c_read(aw8697, AW8697_REG_F_LRA_CONT_H, &reg_val);
+	if (ret < 0)
+		return ret;
 	f0_reg = (reg_val << 8);
 	ret = aw8697_i2c_read(aw8697, AW8697_REG_F_LRA_CONT_L, &reg_val);
+	if (ret < 0)
+		return ret;
 	f0_reg |= (reg_val << 0);
 	if (!f0_reg) {
 		pr_debug("%s: not get f0_reg value is 0!\n", __func__);
@@ -1822,8 +1830,12 @@ static int aw8697_haptic_read_beme(struct aw8697 *aw8697)
 
 	pr_debug("%s  %d enter\n", __func__, __LINE__);
 	ret = aw8697_i2c_read(aw8697, AW8697_REG_WAIT_VOL_MP, &reg_val);
+	if (ret < 0)
+		return ret;
 	aw8697->max_pos_beme = (reg_val << 0);
 	ret = aw8697_i2c_read(aw8697, AW8697_REG_WAIT_VOL_MN, &reg_val);
+	if (ret < 0)
+		return ret;
 	aw8697->max_neg_beme = (reg_val << 0);
 
 	pr_debug("%s max_pos_beme=%d\n", __func__, aw8697->max_pos_beme);
@@ -5061,11 +5073,16 @@ static int aw8697_hw_reset(struct aw8697 *aw8697)
 {
 #ifdef ENABLE_PIN_CONTROL
 	int rc = select_pin_ctl(aw8697, "aw8697_reset_active");
-
+	if (rc < 0)
+		return rc;
 	msleep(5);
 	rc = select_pin_ctl(aw8697, "aw8697_reset_reset");
+	if (rc < 0)
+		return rc;
 	msleep(5);
 	rc = select_pin_ctl(aw8697, "aw8697_reset_active");
+	if (rc < 0)
+		return rc;
 	msleep(3);
 #endif
 	if (!aw8697->enable_pin_control) {
@@ -5861,7 +5878,7 @@ static ssize_t custom_wave_store(struct device *dev,
 
 	period_size = (aw8697->ram.base_addr >> 2);
 	offset = 0;
-	pr_debug(" write szie %d, period size %d", count, period_size);
+	pr_debug(" write size %zu, period size %lu", count, period_size);
 	if (count % period_size || count < period_size)
 		rb_end();
 	atomic_set(&aw8697->is_in_write_loop, 1);
